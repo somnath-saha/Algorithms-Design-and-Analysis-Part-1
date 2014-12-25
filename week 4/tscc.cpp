@@ -1,0 +1,81 @@
+#include <iostream>
+#include <fstream>
+#include <cstdio>
+#include <vector>
+#include <time.h>
+#define N 875714
+using namespace std;
+
+struct node{
+    bool v;
+    int l;
+    int f;
+    vector<int> lV;
+    vector<int> rLV;
+};
+
+struct node G[N+1];
+struct node nG[N+1];
+
+int t=0;
+int s=0;
+void dfs(node G[], int i, bool reverse){
+    G[i].v=true;
+    G[i].l=s;
+    vector<int> next;
+    if (reverse) next= G[i].rLV;
+    else next= G[i].lV;
+    for(int j=0; j<next.size(); j++){
+        if(!G[next[j]].v) {
+            dfs(G, next[j], reverse);
+        }
+    }
+    t++;
+    G[i].f=t;    
+}
+
+void dfsloop(node G[], bool reverse){
+    t=0;
+    s=0;
+    for(int i=N;i>0;--i){
+        if (!G[i].v){
+            s=i;
+            dfs(G,i,reverse);
+        }
+    }
+}
+
+int main(){
+	int t0=time(NULL);
+    for(int i=1;i<=N;++i){
+        G[i].v=false;
+    }
+
+    FILE* fp=freopen("SCC.txt","r",stdin);
+    int h, t;
+    while (scanf("%d %d", &h, &t) > 0) {
+              G[h].lV.push_back(t);
+              G[t].rLV.push_back(h);
+    }
+    fclose(fp);
+
+    dfsloop(G, true);
+    for(int i=1;i<=N;++i){
+        nG[i].v=false;
+        nG[i].f=0;
+        nG[i].l=0;
+        vector<int> temp;
+        for(int j=0; j< G[i].lV.size(); j++){
+            temp.push_back(G[G[i].lV[j]].f);
+        }
+        nG[G[i].f].lV=temp;
+    }
+
+    dfsloop(nG,false);
+
+    ofstream ofs("leader.txt", ofstream::out);    
+    for (int k=1;k<=N;k++) ofs<< nG[k].l<<endl;
+    ofs.close();
+    printf("\n%d",time(NULL)-t0);
+    return 0;
+}
